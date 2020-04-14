@@ -9,7 +9,9 @@ async function handleRequest(request) {
   const API_URL = 'https://cfw-takehome.developers.workers.dev/api/variants'
   let response = await fetchFromRequiredURL(API_URL, true);
 
-  let random = Math.floor(Math.random() % 2);
+  let min = 0;
+  let max = 2;
+  let random = Math.floor(Math.random() * (max - min) + min);
   
   let final_response = await fetchFromRequiredURL(response.variants[random], false);
   return new Response(final_response, {
