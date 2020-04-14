@@ -7,19 +7,28 @@ addEventListener('fetch', event => {
  */
 async function handleRequest(request) {
   const API_URL = 'https://cfw-takehome.developers.workers.dev/api/variants'
-  let response = await fetchFromRequiredURL(API_URL);
+  let response = await fetchFromRequiredURL(API_URL, true);
 
-  return new Response(response, {
-    headers: { 'content-type': 'text/plain' },
+  let random = Math.floor(Math.random() % 2);
+  
+  let final_response = await fetchFromRequiredURL(response.variants[random], false);
+  return new Response(final_response, {
+    headers: { 'content-type': 'text/html' },
   })
 }
 
-async function fetchFromRequiredURL(url) {
+async function fetchFromRequiredURL(url, returnJson) {
   let response = await fetch(url);
 
   if (response.ok) { 
+    if (returnJson) {
     let json = await response.json();
-    return json.variants;
+    return json;
+    }
+    else {
+      let text = await response.text();
+      return text;
+    }
   } else {
     alert("HTTP-Error: " + response.status);
   }
