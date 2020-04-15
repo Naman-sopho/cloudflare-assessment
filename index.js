@@ -8,21 +8,25 @@ addEventListener('fetch', event => {
  */
 async function handleRequest(request) {
 
+  // Get index from cookie or genrate randomly
+  // Extra credits Task 2
   let cookie = getCookie(request, 'url_index')
   let index = null
   if (cookie != null) {
     index = cookie
   }
   else {
+    // generate an index randomly if there is no cookie recieved
     let min = 0;
     let max = 2;
     index = Math.floor(Math.random() * (max - min) + min);
   }
 
-
+  // Task 1, send fetch request
   const API_URL = 'https://cfw-takehome.developers.workers.dev/api/variants'
   let response = await fetchFromRequiredURL(API_URL, true);
   
+  // Task 2 & 3, return HTML response recieved from one of the URLs
   let final_response = await fetchFromRequiredURL(response.variants[index], false);
   let ele = new ElementHandler();
   let response_obj = new Response(final_response, {
@@ -31,10 +35,15 @@ async function handleRequest(request) {
 
   response_obj.headers.set('Set-cookie', 'url_index='+index)
 
+  // Extra credits Task 1
   let html = new HTMLRewriter().on('*', ele).transform(response_obj);
   return html;
 }
 
+/**
+ * ElementHandler class for HTMLRewriter.
+ * Specific for tasks mentioned Extra Credits Task 1.
+ */
 class ElementHandler {
   element(element) {
     if (element.tagName == 'title') {
