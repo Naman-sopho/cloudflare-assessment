@@ -7,27 +7,36 @@ addEventListener('fetch', event => {
  * @param {Request} request
  */
 async function handleRequest(request) {
+
+  let cookie = getCookie(request, 'url_index')
+  let index = null
+  if (cookie != null) {
+    index = cookie
+  }
+  else {
+    let min = 0;
+    let max = 2;
+    index = Math.floor(Math.random() * (max - min) + min);
+  }
+
+
   const API_URL = 'https://cfw-takehome.developers.workers.dev/api/variants'
   let response = await fetchFromRequiredURL(API_URL, true);
-
-  let min = 0;
-  let max = 2;
-  let random = Math.floor(Math.random() * (max - min) + min);
   
-  let final_response = await fetchFromRequiredURL(response.variants[random], false);
+  let final_response = await fetchFromRequiredURL(response.variants[index], false);
   let ele = new ElementHandler();
   let response_obj = new Response(final_response, {
     headers: {'content-type': 'text/html'}
   })
+
+  response_obj.headers.set('Set-cookie', 'url_index='+index)
+
   let html = new HTMLRewriter().on('*', ele).transform(response_obj);
   return html;
 }
 
 class ElementHandler {
   element(element) {
-    // An incoming element, such as `div`
-
-    // Edit title of the page
     if (element.tagName == 'title') {
       element.setInnerContent('Naman Tiwari')
     }
@@ -41,18 +50,9 @@ class ElementHandler {
     }
 
     else if (element.tagName == 'a' && element.getAttribute('id') == 'url') {
-      element.setInnerContent('Link to website')
+      element.setInnerContent('Link to personal website')
       element.setAttribute('href', 'https://naman-sopho.github.io')
     }
-    
-  }
-
-  comments(comment) {
-    // An incoming comment
-  }
-
-  text(text) {
-    // An incoming piece of text
   }
 }
 
@@ -76,4 +76,28 @@ async function fetchFromRequiredURL(url, returnJson) {
   } else {
     alert("HTTP-Error: " + response.status);
   }
+}
+
+/**
+ * Gets the cookie with the given name
+ * Reference: https://developers.cloudflare.com/workers/templates/pages/cookie_extract/
+ * @param {Request} request 
+ * @param {string} name 
+ */
+function getCookie(request, name) {
+  let result = null
+  if (request.headers == null) return null
+  let cookieString = request.headers.get('Cookie')
+  console.log(cookieString)
+  if (cookieString) {
+    let cookies = cookieString.split(';')
+    cookies.forEach(cookie => {
+      let cookieName = cookie.split('=')[0].trim()
+      if (cookieName === name) {
+        let cookieVal = cookie.split('=')[1]
+        result = cookieVal
+      }
+    })
+  }
+  return result
 }
